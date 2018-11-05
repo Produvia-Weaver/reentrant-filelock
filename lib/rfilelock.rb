@@ -55,15 +55,12 @@ else
     else
       lockname = lockname.path if lockname.is_a?(Tempfile)
       File.open(lockname, File::RDWR|File::CREAT, 0644) do |file|
-        update_lock_status(file, true)
-        begin
-          Timeout::timeout(options.fetch(:wait, 60*60*24), Filelock::WaitTimeout) {file.flock(File::LOCK_EX)}
-          Timeout::timeout(options.fetch(:timeout, 60), Filelock::ExecTimeout) {yield file}
-        rescue Timeout::Error
+        Timeout::timeout(options.fetch(:wait, 60*60*24), Filelock::WaitTimeout) {file.flock(File::LOCK_EX)}
+        Timeout::timeout(options.fetch(:timeout, 60), Filelock::ExecTimeout) {
+          update_lock_status(file, true)
+          yield file
           update_lock_status(file, false)
-          throw(Timeout::Error)
-        end
-        update_lock_status(file, false)
+        }
       end
     end
   end
