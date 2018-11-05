@@ -10,6 +10,7 @@ It works for sure on MRI 1.8, 1.9, 2.0, JRuby in both 1.8 and 1.9 mode, and Rubi
 This gem doesn't support NFS. You can use it with [GlusterFS](http://www.gluster.org/), though.
 
 ## Basic Usage
+###  Add 'gem reentrant-filelock' to Gemfile (must have redis installed and configured in gemfile)
 
 ```ruby
 Filelock '/tmp/path/to/lock' do
