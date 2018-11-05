@@ -1,4 +1,4 @@
-# Filelock [![Build Status][travis-img-url]][travis-url]
+# Reentrant-Filelock - based on sheerun/filelock[![Build Status][travis-img-url]][travis-url]
 
 [travis-img-url]: https://travis-ci.org/sheerun/filelock.png
 [travis-url]: https://travis-ci.org/sheerun/filelock
