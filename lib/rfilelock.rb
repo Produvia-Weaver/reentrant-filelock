@@ -5,8 +5,8 @@ require 'filelock/wait_timeout'
 require 'tempfile'
 
 
-def update_lock_status_in_cache(file, lockname, lock)
-  tid = Thread.current.object_id
+def update_lock_status(file, lock)
+  tid = Thread.current.object_id.to_s
   file.truncate(0)
   if(lock == true)
     file.write tid
@@ -14,11 +14,13 @@ def update_lock_status_in_cache(file, lockname, lock)
 end
 
 def is_owner(lockname)
-  tid = Thread.current.object_id
+  tid = Thread.current.object_id.to_s
+  #puts "checking if tid=#{tid} is owner"
   begin
     file = File.open( lockname, "r")
     ftid = file.read
     file.close
+    #puts "read ftid=#{ftid} returning #{ftid == tid}"
     return ftid == tid
   rescue
     return false
@@ -34,22 +36,15 @@ if RUBY_PLATFORM == "java"
     else
       lockname = lockname.path if lockname.is_a?(Tempfile)
       File.open(lockname, File::RDWR|File::CREAT, 0644) do |file|
-        update_lock_status(file, lockname, true)
-        Thread.pass until Timeout::timeout(options.fetch(:wait, 60*60*24), Filelock::WaitTimeout) do
-          file.flock(File::LOCK_EX)
-        end
+        update_lock_status(file, true)
+        begin
+          Thread.pass until Timeout::timeout(options.fetch(:wait, 60*60*24), Filelock::WaitTimeout) {file.flock(File::LOCK_EX)}
+          Timeout::timeout(options.fetch(:timeout, 60), Filelock::ExecTimeout) {yield file}
         rescue Timeout::Error
-          update_lock_status(file, lockname, false)
-          throw(Timeout::Error)
-        end 
-        Timeout::timeout(options.fetch(:timeout, 60), Filelock::ExecTimeout) do
-          yield file
-        end
-        rescue Timeout::Error
-          update_lock_status(file, lockname, false)
+          update_lock_status(file, false)
           throw(Timeout::Error)
         end
-        update_lock_status(file, lockname, false)
+        update_lock_status(file, false)
       end
     end
   end
@@ -60,22 +55,15 @@ else
     else
       lockname = lockname.path if lockname.is_a?(Tempfile)
       File.open(lockname, File::RDWR|File::CREAT, 0644) do |file|
-        update_lock_status(file, lockname, true)
-        Timeout::timeout(options.fetch(:wait, 60*60*24), Filelock::WaitTimeout) do
-          file.flock(File::LOCK_EX)
-        end
+        update_lock_status(file, true)
+        begin
+          Timeout::timeout(options.fetch(:wait, 60*60*24), Filelock::WaitTimeout) {file.flock(File::LOCK_EX)}
+          Timeout::timeout(options.fetch(:timeout, 60), Filelock::ExecTimeout) {yield file}
         rescue Timeout::Error
-          update_lock_status(file, lockname, false)
+          update_lock_status(file, false)
           throw(Timeout::Error)
         end
-        Timeout::timeout(options.fetch(:timeout, 60), Filelock::ExecTimeout) do
-          yield file
-        end
-        rescue Timeout::Error
-          update_lock_status(file, lockname, false)
-          throw(Timeout::Error)
-        end
-        update_lock_status(file, lockname, false)
+        update_lock_status(file, false)
       end
     end
   end
