@@ -3,6 +3,8 @@
 [travis-img-url]: https://travis-ci.org/sheerun/filelock.png
 [travis-url]: https://travis-ci.org/sheerun/filelock
 
+Inter process locking for ruby and rails
+
 Heavily tested, but simple filelocking solution using [flock](http://linux.die.net/man/2/flock) command. It guarantees unlocking of files.
 
 It works for sure on MRI 1.8, 1.9, 2.0, JRuby in both 1.8 and 1.9 mode, and Rubinius.
