@@ -3,7 +3,7 @@
 [travis-img-url]: https://travis-ci.org/sheerun/filelock.png
 [travis-url]: https://travis-ci.org/sheerun/filelock
 
-Inter process locking for ruby and rails
+Interprocess locking for ruby and rails
 
 Heavily tested, but simple filelocking solution using [flock](http://linux.die.net/man/2/flock) command. It guarantees unlocking of files.
 
